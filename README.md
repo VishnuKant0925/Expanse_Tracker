@@ -306,7 +306,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Vishnu Kant**
 
 - GitHub: [@VishnuKant0925](https://github.com/VishnuKant0925)
-- Email: vishnu.kant@example.com
+- Email: vishnukant844121@gmail.com
 
 ## 🙏 Acknowledgments
 
@@ -323,7 +323,7 @@ If you encounter any issues or have questions:
 
 - 🐛 [Report a Bug](https://github.com/VishnuKant0925/ExpenseTrackerPro/issues)
 - 💡 [Request a Feature](https://github.com/VishnuKant0925/ExpenseTrackerPro/issues)
-- 📧 [Contact Support](mailto:support@expensetracker.com)
+- 📧 [Contact Support](mailto:vishnukant844121@gmail.com)
 
 ---
 
