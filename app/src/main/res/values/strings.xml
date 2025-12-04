@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ExpenseTracker Pro</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_analytics">Analytics</string>
+    <string name="nav_settings">Settings</string>
+    
+    <!-- Main Activity -->
+    <string name="total_balance">Total Balance</string>
+    <string name="income">Income</string>
+    <string name="expenses">Expenses</string>
+    <string name="recent_transactions">Recent Transactions</string>
+    <string name="add_transaction">Add Transaction</string>
+    
+    <!-- Add Expense Activity -->
+    <string name="add_expense">Add Expense</string>
+    <string name="add_income">Add Income</string>
+    <string name="title">Title</string>
+    <string name="amount">Amount</string>
+    <string name="category">Category</string>
+    <string name="description">Description</string>
+    <string name="date">Date</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    
+    <!-- Categories -->
+    <string name="food">Food</string>
+    <string name="transport">Transport</string>
+    <string name="entertainment">Entertainment</string>
+    <string name="shopping">Shopping</string>
+    <string name="bills">Bills</string>
+    <string name="health">Health</string>
+    <string name="education">Education</string>
+    <string name="salary">Salary</string>
+    <string name="business">Business</string>
+    <string name="investment">Investment</string>
+    <string name="other">Other</string>
+    
+    <!-- Payment Methods -->
+    <string name="cash">Cash</string>
+    <string name="card">Card</string>
+    <string name="upi">UPI</string>
+    <string name="bank_transfer">Bank Transfer</string>
+    
+    <!-- Analytics -->
+    <string name="spending_overview">Spending Overview</string>
+    <string name="category_breakdown">Category Breakdown</string>
+    <string name="monthly_trend">Monthly Trend</string>
+    <string name="this_month">This Month</string>
+    <string name="last_month">Last Month</string>
+    
+    <!-- Settings -->
+    <string name="general">General</string>
+    <string name="security">Security</string>
+    <string name="data">Data</string>
+    <string name="about">About</string>
+    <string name="currency">Currency</string>
+    <string name="theme">Theme</string>
+    <string name="biometric_auth">Biometric Authentication</string>
+    <string name="export_data">Export Data</string>
+    <string name="import_data">Import Data</string>
+    <string name="backup_data">Backup Data</string>
+    
+    <!-- Messages -->
+    <string name="expense_added">Expense added successfully</string>
+    <string name="income_added">Income added successfully</string>
+    <string name="expense_updated">Expense updated successfully</string>
+    <string name="expense_deleted">Expense deleted successfully</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="fill_all_fields">Please fill all required fields</string>
+    <string name="invalid_amount">Please enter a valid amount</string>
+    
+    <!-- Dialogs -->
+    <string name="delete_expense">Delete Expense</string>
+    <string name="delete_expense_message">Are you sure you want to delete this expense?</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    
+    <!-- Empty States -->
+    <string name="no_expenses">No expenses found</string>
+    <string name="start_tracking">Start tracking your expenses</string>
+    <string name="add_first_expense">Add your first expense to get started</string>
+</resources>

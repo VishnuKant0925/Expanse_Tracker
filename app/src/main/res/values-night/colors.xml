@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Theme Primary Colors -->
+    <color name="primary_color">#66BB6A</color>
+    <color name="primary_dark_color">#2E7D32</color>
+    <color name="primary_light_color">#81C784</color>
+
+    <!-- Dark Theme Secondary Colors -->
+    <color name="secondary_color">#FFB74D</color>
+    <color name="secondary_dark_color">#F57C00</color>
+    <color name="secondary_light_color">#FFD54F</color>
+
+    <!-- Dark Theme Accent Color -->
+    <color name="accent_color">#FF7043</color>
+
+    <!-- Dark Theme Background Colors -->
+    <color name="background_color">#121212</color>
+    <color name="surface_color">#1E1E1E</color>
+    <color name="card_background">#2D2D2D</color>
+
+    <!-- Dark Theme Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#BDBDBD</color>
+    <color name="text_hint">#757575</color>
+
+    <!-- Dark Theme Status Colors -->
+    <color name="success_color">#66BB6A</color>
+    <color name="error_color">#EF5350</color>
+    <color name="warning_color">#FFB74D</color>
+    <color name="info_color">#64B5F6</color>
+
+    <!-- Dark Theme Category Colors -->
+    <color name="food_color">#FF7043</color>
+    <color name="transport_color">#64B5F6</color>
+    <color name="entertainment_color">#BA68C8</color>
+    <color name="shopping_color">#F06292</color>
+    <color name="bills_color">#FFB74D</color>
+    <color name="health_color">#66BB6A</color>
+    <color name="education_color">#78909C</color>
+    <color name="other_color">#8D6E63</color>
+
+    <!-- Dark Theme Income vs Expense -->
+    <color name="income_color">#66BB6A</color>
+    <color name="expense_color">#EF5350</color>
+
+    <!-- Dark Theme UI Colors -->
+    <color name="divider_color">#424242</color>
+    <color name="shadow_color">#1A000000</color>
+    <color name="overlay_color">#80000000</color>
+
+    <!-- Dark Theme Gradient Colors -->
+    <color name="gradient_start">#66BB6A</color>
+    <color name="gradient_end">#81C784</color>
+
+    <!-- Dark Theme Chart Colors -->
+    <color name="chart_color_1">#FF7043</color>
+    <color name="chart_color_2">#64B5F6</color>
+    <color name="chart_color_3">#BA68C8</color>
+    <color name="chart_color_4">#FFB74D</color>
+    <color name="chart_color_5">#66BB6A</color>
+</resources>
