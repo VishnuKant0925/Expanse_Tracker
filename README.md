@@ -1,4 +1,4 @@
-# 💰 ExpenseTracker Pro
+﻿# ExpenseTracker Pro
 
 > A modern, feature-rich expense tracking Android application built with Java
 
@@ -7,15 +7,15 @@
 ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=flat&logo=sqlite&logoColor=white)
 ![Material Design](https://img.shields.io/badge/Material%20Design-757575?style=flat&logo=material-design&logoColor=white)
 
-## 📱 Overview
+## Overview
 
 ExpenseTracker Pro is a comprehensive personal finance management app that helps users track their income and expenses, analyze spending patterns, and maintain financial health. Built with modern Android development practices and Material Design principles.
 
-## 🏗️ App Architecture
+## App Architecture
 
 ```mermaid
 flowchart TB
-    subgraph UI["📱 UI Layer"]
+    subgraph UI[UI Layer]
         MA[MainActivity]
         AEA[AddExpenseActivity]
         ETA[EditTransactionActivity]
@@ -23,24 +23,24 @@ flowchart TB
         SA[SettingsActivity]
     end
 
-    subgraph Adapters["🔄 Adapters"]
+    subgraph Adapters[Adapters]
         EA[ExpenseAdapter]
         CA[CategoryAdapter]
     end
 
-    subgraph Data["💾 Data Layer"]
+    subgraph Data[Data Layer]
         DB[(Room Database)]
         DAO[ExpenseDao]
         CDAO[CategoryDao]
     end
 
-    subgraph Models["📦 Models"]
+    subgraph Models[Models]
         EXP[Expense]
         CAT[Category]
         SUB[Subcategory]
     end
 
-    subgraph Utils["🔧 Utilities"]
+    subgraph Utils[Utilities]
         DU[DateUtils]
         MU[MonthlyUtils]
         TM[ThemeManager]
@@ -64,27 +64,27 @@ flowchart TB
     DC --> DB
 ```
 
-## 📊 Analytics Flow
+## Analytics Flow
 
 ```mermaid
 flowchart LR
-    subgraph Input["📥 Data Input"]
+    subgraph Input[Data Input]
         T[Transactions]
         D[Date Range]
     end
 
-    subgraph Processing["⚙️ Processing"]
+    subgraph Processing[Processing]
         DAO[ExpenseDao Queries]
         DU[DateUtils]
     end
 
-    subgraph Charts["📈 Visualizations"]
-        LC[Line Chart<br/>Daily Trend]
-        BC[Bar Chart<br/>Weekly Compare]
-        PC[Pie Chart<br/>Needs vs Wants]
+    subgraph Charts[Visualizations]
+        LC[Line Chart - Daily Trend]
+        BC[Bar Chart - Weekly Compare]
+        PC[Pie Chart - Needs vs Wants]
     end
 
-    subgraph Insights["💡 Insights"]
+    subgraph Insights[Insights]
         FO[Financial Overview]
         TC[Top Categories]
         QI[Quick Stats]
@@ -104,9 +104,9 @@ flowchart LR
     DAO --> MOM
 ```
 
-## ✨ Features
+## Features
 
-### 💳 **Core Functionality**
+### Core Functionality
 
 - **Income & Expense Tracking**: Add, edit, and delete financial transactions
 - **Category Management**: Predefined and custom categories with subcategories and color coding
@@ -116,7 +116,7 @@ flowchart LR
 - **Swipe to Delete**: Quick transaction removal with undo support
 - **Soft Delete & Restore**: Recover accidentally deleted transactions
 
-### 📅 **Monthly Tracking**
+### Monthly Tracking
 
 - **Month Selector**: Navigate between months with intuitive UI
 - **Monthly Summary**: Income, expenses, and balance for each month
@@ -124,7 +124,7 @@ flowchart LR
 - **Budget Progress**: Track spending against monthly budget
 - **Empty State Handling**: Clear prompts when no transactions exist
 
-### 📊 **Analytics & Insights**
+### Analytics & Insights
 
 - **Financial Overview**: Total income, expenses, balance, and savings rate
 - **Daily Spending Trend**: Line chart showing daily expenses with budget limit line
@@ -135,14 +135,14 @@ flowchart LR
 - **Month-over-Month Comparison**: Track spending changes between months
 - **Spending Tips**: AI-generated recommendations based on your spending patterns
 
-### 🔒 **Security Features**
+### Security Features
 
 - **Biometric Authentication**: Fingerprint and face unlock support
 - **Data Encryption**: Secure local data storage
 - **Backup & Restore**: Cloud backup integration
 - **Privacy Controls**: App lock and secure access
 
-### 🎨 **User Experience**
+### User Experience
 
 - **Material Design**: Modern, intuitive interface
 - **Dark/Light Theme**: Customizable appearance with ThemeManager
@@ -151,7 +151,7 @@ flowchart LR
 - **Offline Support**: Works without internet connection
 - **Interactive Charts**: MPAndroidChart integration for beautiful visualizations
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 **Architecture:**
 
@@ -179,7 +179,7 @@ flowchart LR
 - Glide (Image loading)
 - Biometric API
 
-## � Transaction Lifecycle
+## Transaction Lifecycle
 
 ```mermaid
 stateDiagram-v2
@@ -188,25 +188,12 @@ stateDiagram-v2
     Active --> Edited: User Edits
     Edited --> Active: Save Changes
     Active --> SoftDeleted: Swipe Delete
-    SoftDeleted --> Active: Undo (Restore)
+    SoftDeleted --> Active: Undo/Restore
     SoftDeleted --> PermanentlyDeleted: Cleanup
     PermanentlyDeleted --> [*]
-
-    note right of Active
-        Visible in:
-        - Dashboard
-        - Analytics
-        - Monthly View
-    end note
-
-    note right of SoftDeleted
-        is_deleted = 1
-        Can be restored
-        Hidden from views
-    end note
 ```
 
-## �🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -238,7 +225,7 @@ stateDiagram-v2
    - Connect an Android device or start an emulator
    - Click the "Run" button or press Shift+F10
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 app/
@@ -274,26 +261,26 @@ app/
 └── build.gradle              # App-level build configuration
 ```
 
-## 📱 Key Activities
+## Key Activities
 
 ### User Flow
 
 ```mermaid
 flowchart TD
-    A[🚀 App Launch] --> B{Biometric Auth?}
-    B -->|Yes| C[🔐 Authenticate]
-    B -->|No| D[🏠 Dashboard]
+    A[App Launch] --> B{Biometric Auth}
+    B -->|Yes| C[Authenticate]
+    B -->|No| D[Dashboard]
     C -->|Success| D
     C -->|Fail| A
 
-    D --> E[📋 View Transactions]
-    D --> F[➕ Add Transaction]
-    D --> G[📊 Analytics]
-    D --> H[⚙️ Settings]
+    D --> E[View Transactions]
+    D --> F[Add Transaction]
+    D --> G[Analytics]
+    D --> H[Settings]
 
-    E --> I[✏️ Edit Transaction]
-    E --> J[🗑️ Swipe Delete]
-    J --> K[↩️ Undo?]
+    E --> I[Edit Transaction]
+    E --> J[Swipe Delete]
+    J --> K{Undo?}
     K -->|Yes| E
     K -->|No| L[Soft Deleted]
 
@@ -301,19 +288,19 @@ flowchart TD
     M --> N[Select Category]
     N --> O[Set Date]
     O --> P[Choose Payment]
-    P --> Q[💾 Save]
+    P --> Q[Save]
     Q --> D
 
-    G --> R[📅 Select Month]
+    G --> R[Select Month]
     R --> S[View Charts]
-    S --> T[📈 Daily Trend]
-    S --> U[📊 Weekly Compare]
-    S --> V[🥧 Needs vs Wants]
-    S --> W[💡 Insights]
+    S --> T[Daily Trend]
+    S --> U[Weekly Compare]
+    S --> V[Needs vs Wants]
+    S --> W[Insights]
 
-    H --> X[🎨 Theme]
-    H --> Y[🔒 Security]
-    H --> Z[💾 Backup]
+    H --> X[Theme]
+    H --> Y[Security]
+    H --> Z[Backup]
 ```
 
 ### MainActivity
@@ -349,7 +336,7 @@ flowchart TD
 - Data management options
 - Theme selection
 
-## 🎨 Design System
+## Design System
 
 ### Color Palette
 
@@ -370,7 +357,7 @@ flowchart TD
 - Category-specific emoji icons for visual recognition
 - Consistent icon sizing and styling
 
-## 🔧 Development Features
+## Development Features
 
 ### Database Schema
 
@@ -465,7 +452,7 @@ CREATE TABLE subcategories (
 - `getHighestExpense(start, end)`: Largest single expense
 - `getAverageDailyExpense(start, end)`: Average daily spending
 
-## 🧪 Testing
+## Testing
 
 ### Unit Tests
 
@@ -487,7 +474,7 @@ CREATE TABLE subcategories (
 - Business logic: 90%
 - UI components: 85%
 
-## 🚀 Build & Release
+## Build & Release
 
 ### Debug Build
 
@@ -507,7 +494,7 @@ CREATE TABLE subcategories (
 2. Configure signing in `build.gradle`
 3. Build signed APK/Bundle
 
-## 📊 Performance Optimization
+## Performance Optimization
 
 - **Database indexing** for faster queries
 - **Image optimization** with Glide
@@ -515,22 +502,22 @@ CREATE TABLE subcategories (
 - **Background processing** for heavy operations
 - **Lazy loading** in RecyclerViews
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
-- [x] 📊 **Advanced Analytics**: Comprehensive charts and spending insights ✅
-- [x] 📅 **Monthly Tracking**: Month-wise transaction management ✅
-- [x] 🗑️ **Soft Delete**: Undo transaction deletions ✅
-- [x] 📈 **Needs vs Wants**: Track essential vs discretionary spending ✅
-- [ ] 🌐 **Cloud Sync**: Firebase integration for data synchronization
-- [ ] 📧 **Email Reports**: Automated financial reports via email
-- [ ] 🤖 **AI Insights**: Machine learning for spending predictions
-- [ ] 💳 **Bank Integration**: Connect with bank APIs for automatic transaction import
-- [ ] 📱 **Widget Support**: Home screen widgets for quick expense entry
-- [ ] 🌍 **Multi-currency**: Support for multiple currencies with exchange rates
-- [ ] 🔔 **Smart Notifications**: Intelligent spending alerts and reminders
-- [ ] 📤 **Export Data**: Export to CSV/PDF for external analysis
+- [x] **Advanced Analytics**: Comprehensive charts and spending insights
+- [x] **Monthly Tracking**: Month-wise transaction management
+- [x] **Soft Delete**: Undo transaction deletions
+- [x] **Needs vs Wants**: Track essential vs discretionary spending
+- [ ] **Cloud Sync**: Firebase integration for data synchronization
+- [ ] **Email Reports**: Automated financial reports via email
+- [ ] **AI Insights**: Machine learning for spending predictions
+- [ ] **Bank Integration**: Connect with bank APIs for automatic transaction import
+- [ ] **Widget Support**: Home screen widgets for quick expense entry
+- [ ] **Multi-currency**: Support for multiple currencies with exchange rates
+- [ ] **Smart Notifications**: Intelligent spending alerts and reminders
+- [ ] **Export Data**: Export to CSV/PDF for external analysis
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -545,18 +532,18 @@ CREATE TABLE subcategories (
 - Add unit tests for new features
 - Update documentation as needed
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 Author
+## Author
 
 **Vishnu Kant**
 
 - GitHub: [@VishnuKant0925](https://github.com/VishnuKant0925)
 - Email: vishnukant844121@gmail.com
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Material Design**: For the design system and components
 - **Android Jetpack**: For modern Android development tools
@@ -565,16 +552,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 📞 Support
+## Support
 
 If you encounter any issues or have questions:
 
-- 🐛 [Report a Bug](https://github.com/VishnuKant0925/ExpenseTrackerPro/issues)
-- 💡 [Request a Feature](https://github.com/VishnuKant0925/ExpenseTrackerPro/issues)
-- 📧 [Contact Support](mailto:vishnukant844121@gmail.com)
+- [Report a Bug](https://github.com/VishnuKant0925/ExpenseTrackerPro/issues)
+- [Request a Feature](https://github.com/VishnuKant0925/ExpenseTrackerPro/issues)
+- [Contact Support](mailto:vishnukant844121@gmail.com)
 
 ---
 
-**Built with ❤️ for better financial management**
+**Built with love for better financial management**
 
-_Track Smart, Spend Wise! 💰📱_
+_Track Smart, Spend Wise!_
