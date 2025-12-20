@@ -16,17 +16,31 @@ ExpenseTracker Pro is a comprehensive personal finance management app that helps
 ### 💳 **Core Functionality**
 
 - **Income & Expense Tracking**: Add, edit, and delete financial transactions
-- **Category Management**: Predefined and custom categories with color coding
+- **Category Management**: Predefined and custom categories with subcategories and color coding
 - **Payment Methods**: Support for Cash, Card, UPI, and Bank transfers
 - **Real-time Balance**: Automatic calculation of total balance
 - **Search & Filter**: Find transactions by date, category, or amount
+- **Swipe to Delete**: Quick transaction removal with undo support
+- **Soft Delete & Restore**: Recover accidentally deleted transactions
+
+### 📅 **Monthly Tracking**
+
+- **Month Selector**: Navigate between months with intuitive UI
+- **Monthly Summary**: Income, expenses, and balance for each month
+- **Category Breakdown**: See spending by category per month
+- **Budget Progress**: Track spending against monthly budget
+- **Empty State Handling**: Clear prompts when no transactions exist
 
 ### 📊 **Analytics & Insights**
 
-- **Spending Overview**: Visual representation of expenses vs income
-- **Category Breakdown**: Pie charts showing expense distribution
-- **Monthly Trends**: Line graphs tracking spending over time
-- **Detailed Reports**: Comprehensive financial summaries
+- **Financial Overview**: Total income, expenses, balance, and savings rate
+- **Daily Spending Trend**: Line chart showing daily expenses with budget limit line
+- **Weekly Comparison**: Bar chart comparing spending across the last 4 weeks
+- **Needs vs Wants**: Pie chart showing essential vs non-essential spending breakdown
+- **Top Spending Categories**: Visual ranking of your highest expense categories
+- **Quick Insights**: Transaction count, highest expense, daily average
+- **Month-over-Month Comparison**: Track spending changes between months
+- **Spending Tips**: AI-generated recommendations based on your spending patterns
 
 ### 🔒 **Security Features**
 
@@ -38,10 +52,11 @@ ExpenseTracker Pro is a comprehensive personal finance management app that helps
 ### 🎨 **User Experience**
 
 - **Material Design**: Modern, intuitive interface
-- **Dark/Light Theme**: Customizable appearance
+- **Dark/Light Theme**: Customizable appearance with ThemeManager
 - **Responsive Layout**: Optimized for all screen sizes
-- **Smooth Animations**: Enhanced user interactions
+- **Smooth Animations**: Enhanced user interactions with chart animations
 - **Offline Support**: Works without internet connection
+- **Interactive Charts**: MPAndroidChart integration for beautiful visualizations
 
 ## 🛠️ Tech Stack
 
@@ -111,6 +126,7 @@ app/
 │   ├── activities/           # Activity classes
 │   │   ├── MainActivity.java
 │   │   ├── AddExpenseActivity.java
+│   │   ├── EditTransactionActivity.java
 │   │   ├── AnalyticsActivity.java
 │   │   └── SettingsActivity.java
 │   ├── fragments/            # Fragment classes
@@ -118,13 +134,17 @@ app/
 │   │   └── ExpenseAdapter.java
 │   ├── models/               # Data models
 │   │   ├── Expense.java
-│   │   └── Category.java
+│   │   ├── Category.java
+│   │   └── Subcategory.java
 │   ├── database/             # Room database components
 │   │   ├── ExpenseDatabase.java
 │   │   ├── ExpenseDao.java
-│   │   └── CategoryDao.java
+│   │   ├── CategoryDao.java
+│   │   └── DateConverter.java
 │   └── utils/                # Utility classes
-│       ├── DateConverter.java
+│       ├── DateUtils.java
+│       ├── MonthlyUtils.java
+│       ├── ThemeManager.java
 │       └── CurrencyFormatter.java
 ├── src/main/res/
 │   ├── layout/               # XML layout files
@@ -152,10 +172,15 @@ app/
 
 ### AnalyticsActivity
 
-- Charts and graphs for data visualization
-- Spending trends and patterns
-- Category-wise breakdowns
-- Monthly/yearly reports
+- **Financial Overview Dashboard**: Income, expenses, balance, savings rate with progress indicator
+- **Daily Spending Trend**: Interactive line chart with cubic bezier curves and budget limit line
+- **Weekly Comparison**: Bar chart comparing last 4 weeks with color-coded performance
+- **Needs vs Wants Analysis**: Donut pie chart showing essential vs non-essential spending
+- **Top Categories**: Visual breakdown of highest spending categories with percentages
+- **Quick Insights**: Transaction count, highest expense, daily average, days remaining
+- **Month-over-Month**: Compare current month with previous month performance
+- **Spending Tips**: Dynamic recommendations based on spending patterns
+- **Month Navigation**: Browse analytics for any previous month
 
 ### SettingsActivity
 
@@ -196,11 +221,15 @@ CREATE TABLE expenses (
     title TEXT NOT NULL,
     amount REAL NOT NULL,
     category TEXT NOT NULL,
+    subcategory TEXT,
     description TEXT,
     date INTEGER NOT NULL,
     type TEXT NOT NULL, -- 'income' or 'expense'
     payment_method TEXT NOT NULL,
-    created_at INTEGER NOT NULL
+    created_at INTEGER NOT NULL,
+    is_deleted INTEGER DEFAULT 0,
+    deleted_at INTEGER,
+    is_essential INTEGER DEFAULT 1  -- 1 = Need, 0 = Want
 );
 
 -- Categories Table
@@ -211,15 +240,32 @@ CREATE TABLE categories (
     color TEXT,
     type TEXT NOT NULL -- 'income' or 'expense'
 );
+
+-- Subcategories Table
+CREATE TABLE subcategories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    category_id INTEGER NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
 ```
 
 ### API Endpoints (Room Database)
 
-- `getAllExpenses()`: Retrieve all transactions
+- `getAllExpenses()`: Retrieve all active transactions
 - `getExpensesByType(type)`: Filter by income/expense
 - `getExpensesByCategory(category)`: Filter by category
+- `getTransactionsByDateRange(start, end)`: Get transactions for specific month
 - `getTotalIncome()`: Calculate total income
 - `getTotalExpenses()`: Calculate total expenses
+- `softDelete(id, deletedAt)`: Soft delete a transaction
+- `restoreTransaction(id)`: Restore a soft-deleted transaction
+- `getDailyExpenseTotals(start, end)`: Daily spending for line chart
+- `getWeeklyExpenseTotals(start, end)`: Weekly totals for bar chart
+- `getNeedsVsWantsTotals(start, end)`: Essential vs non-essential breakdown
+- `getTopSpendingCategories(start, end, limit)`: Top spending categories
+- `getHighestExpense(start, end)`: Largest single expense
+- `getAverageDailyExpense(start, end)`: Average daily spending
 
 ## 🧪 Testing
 
@@ -273,14 +319,18 @@ CREATE TABLE categories (
 
 ## 🔮 Future Enhancements
 
+- [x] 📊 **Advanced Analytics**: Comprehensive charts and spending insights ✅
+- [x] 📅 **Monthly Tracking**: Month-wise transaction management ✅
+- [x] 🗑️ **Soft Delete**: Undo transaction deletions ✅
+- [x] 📈 **Needs vs Wants**: Track essential vs discretionary spending ✅
 - [ ] 🌐 **Cloud Sync**: Firebase integration for data synchronization
 - [ ] 📧 **Email Reports**: Automated financial reports via email
 - [ ] 🤖 **AI Insights**: Machine learning for spending predictions
 - [ ] 💳 **Bank Integration**: Connect with bank APIs for automatic transaction import
 - [ ] 📱 **Widget Support**: Home screen widgets for quick expense entry
 - [ ] 🌍 **Multi-currency**: Support for multiple currencies with exchange rates
-- [ ] 📊 **Advanced Analytics**: More detailed financial analysis and insights
 - [ ] 🔔 **Smart Notifications**: Intelligent spending alerts and reminders
+- [ ] 📤 **Export Data**: Export to CSV/PDF for external analysis
 
 ## 🤝 Contributing
 
