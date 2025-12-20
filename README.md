@@ -11,6 +11,99 @@
 
 ExpenseTracker Pro is a comprehensive personal finance management app that helps users track their income and expenses, analyze spending patterns, and maintain financial health. Built with modern Android development practices and Material Design principles.
 
+## 🏗️ App Architecture
+
+```mermaid
+flowchart TB
+    subgraph UI["📱 UI Layer"]
+        MA[MainActivity]
+        AEA[AddExpenseActivity]
+        ETA[EditTransactionActivity]
+        AA[AnalyticsActivity]
+        SA[SettingsActivity]
+    end
+
+    subgraph Adapters["🔄 Adapters"]
+        EA[ExpenseAdapter]
+        CA[CategoryAdapter]
+    end
+
+    subgraph Data["💾 Data Layer"]
+        DB[(Room Database)]
+        DAO[ExpenseDao]
+        CDAO[CategoryDao]
+    end
+
+    subgraph Models["📦 Models"]
+        EXP[Expense]
+        CAT[Category]
+        SUB[Subcategory]
+    end
+
+    subgraph Utils["🔧 Utilities"]
+        DU[DateUtils]
+        MU[MonthlyUtils]
+        TM[ThemeManager]
+        DC[DateConverter]
+    end
+
+    MA --> EA
+    MA --> DAO
+    AEA --> DAO
+    ETA --> DAO
+    AA --> DAO
+    AA --> DU
+
+    DAO --> DB
+    CDAO --> DB
+
+    DB --> EXP
+    DB --> CAT
+    DB --> SUB
+
+    DC --> DB
+```
+
+## 📊 Analytics Flow
+
+```mermaid
+flowchart LR
+    subgraph Input["📥 Data Input"]
+        T[Transactions]
+        D[Date Range]
+    end
+
+    subgraph Processing["⚙️ Processing"]
+        DAO[ExpenseDao Queries]
+        DU[DateUtils]
+    end
+
+    subgraph Charts["📈 Visualizations"]
+        LC[Line Chart<br/>Daily Trend]
+        BC[Bar Chart<br/>Weekly Compare]
+        PC[Pie Chart<br/>Needs vs Wants]
+    end
+
+    subgraph Insights["💡 Insights"]
+        FO[Financial Overview]
+        TC[Top Categories]
+        QI[Quick Stats]
+        MOM[Month-over-Month]
+    end
+
+    T --> DAO
+    D --> DU
+    DU --> DAO
+
+    DAO --> LC
+    DAO --> BC
+    DAO --> PC
+    DAO --> FO
+    DAO --> TC
+    DAO --> QI
+    DAO --> MOM
+```
+
 ## ✨ Features
 
 ### 💳 **Core Functionality**
@@ -86,7 +179,34 @@ ExpenseTracker Pro is a comprehensive personal finance management app that helps
 - Glide (Image loading)
 - Biometric API
 
-## 🚀 Getting Started
+## � Transaction Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created: Add Transaction
+    Created --> Active: Save to DB
+    Active --> Edited: User Edits
+    Edited --> Active: Save Changes
+    Active --> SoftDeleted: Swipe Delete
+    SoftDeleted --> Active: Undo (Restore)
+    SoftDeleted --> PermanentlyDeleted: Cleanup
+    PermanentlyDeleted --> [*]
+
+    note right of Active
+        Visible in:
+        - Dashboard
+        - Analytics
+        - Monthly View
+    end note
+
+    note right of SoftDeleted
+        is_deleted = 1
+        Can be restored
+        Hidden from views
+    end note
+```
+
+## �🚀 Getting Started
 
 ### Prerequisites
 
@@ -156,6 +276,46 @@ app/
 
 ## 📱 Key Activities
 
+### User Flow
+
+```mermaid
+flowchart TD
+    A[🚀 App Launch] --> B{Biometric Auth?}
+    B -->|Yes| C[🔐 Authenticate]
+    B -->|No| D[🏠 Dashboard]
+    C -->|Success| D
+    C -->|Fail| A
+
+    D --> E[📋 View Transactions]
+    D --> F[➕ Add Transaction]
+    D --> G[📊 Analytics]
+    D --> H[⚙️ Settings]
+
+    E --> I[✏️ Edit Transaction]
+    E --> J[🗑️ Swipe Delete]
+    J --> K[↩️ Undo?]
+    K -->|Yes| E
+    K -->|No| L[Soft Deleted]
+
+    F --> M[Fill Form]
+    M --> N[Select Category]
+    N --> O[Set Date]
+    O --> P[Choose Payment]
+    P --> Q[💾 Save]
+    Q --> D
+
+    G --> R[📅 Select Month]
+    R --> S[View Charts]
+    S --> T[📈 Daily Trend]
+    S --> U[📊 Weekly Compare]
+    S --> V[🥧 Needs vs Wants]
+    S --> W[💡 Insights]
+
+    H --> X[🎨 Theme]
+    H --> Y[🔒 Security]
+    H --> Z[💾 Backup]
+```
+
 ### MainActivity
 
 - Dashboard with balance overview
@@ -211,6 +371,44 @@ app/
 - Consistent icon sizing and styling
 
 ## 🔧 Development Features
+
+### Database Schema
+
+```mermaid
+erDiagram
+    EXPENSES ||--o{ CATEGORIES : has
+    CATEGORIES ||--o{ SUBCATEGORIES : contains
+
+    EXPENSES {
+        int id PK
+        string title
+        real amount
+        string category
+        string subcategory
+        string description
+        int date
+        string type
+        string payment_method
+        int created_at
+        int is_deleted
+        int deleted_at
+        int is_essential
+    }
+
+    CATEGORIES {
+        int id PK
+        string name
+        string icon
+        string color
+        string type
+    }
+
+    SUBCATEGORIES {
+        int id PK
+        string name
+        int category_id FK
+    }
+```
 
 ### Database Design
 
