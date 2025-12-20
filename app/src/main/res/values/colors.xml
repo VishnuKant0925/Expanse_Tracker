@@ -70,4 +70,13 @@
     <color name="divider_color">#E0E0E0</color>
     <color name="shadow_color">#1A000000</color>
     <color name="overlay_color">#80000000</color>
+    
+    <!-- Card and Stroke Colors -->
+    <color name="card_stroke">#E0E0E0</color>
+    
+    <!-- Budget Progress Colors -->
+    <color name="budget_safe">#4CAF50</color>
+    <color name="budget_warning">#FF9800</color>
+    <color name="budget_danger">#FF5722</color>
+    <color name="budget_over">#F44336</color>
 </resources>

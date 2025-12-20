@@ -38,10 +38,17 @@ public class Expense {
     
     @ColumnInfo(name = "created_at")
     private Date createdAt;
+    
+    @ColumnInfo(name = "is_deleted", defaultValue = "0")
+    private boolean isDeleted;
+    
+    @ColumnInfo(name = "deleted_at")
+    private Date deletedAt;
 
     // Constructors
     public Expense() {
         this.createdAt = new Date();
+        this.isDeleted = false;
     }
 
     @Ignore
@@ -100,4 +107,26 @@ public class Expense {
 
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    
+    public boolean isDeleted() { return isDeleted; }
+    public void setDeleted(boolean deleted) { this.isDeleted = deleted; }
+    
+    public Date getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(Date deletedAt) { this.deletedAt = deletedAt; }
+    
+    /**
+     * Soft delete this expense (marks as deleted without removing from DB)
+     */
+    public void softDelete() {
+        this.isDeleted = true;
+        this.deletedAt = new Date();
+    }
+    
+    /**
+     * Restore a soft-deleted expense
+     */
+    public void restore() {
+        this.isDeleted = false;
+        this.deletedAt = null;
+    }
 }

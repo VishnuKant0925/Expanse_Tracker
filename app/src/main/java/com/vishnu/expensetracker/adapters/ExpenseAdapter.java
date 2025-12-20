@@ -6,8 +6,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.vishnu.expensetracker.R;
 import com.vishnu.expensetracker.models.Expense;
 import com.vishnu.expensetracker.utils.CurrencyFormatter;
@@ -18,6 +20,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     private List<Expense> expenses;
     private Context context;
     private OnExpenseClickListener listener;
+    private boolean showDeleteConfirmation = true; // Flag to enable/disable confirmation dialog
     
     public interface OnExpenseClickListener {
         void onExpenseClick(Expense expense);
@@ -33,6 +36,14 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     
     public void setOnExpenseClickListener(OnExpenseClickListener listener) {
         this.listener = listener;
+    }
+    
+    /**
+     * Enable or disable the delete confirmation dialog
+     * @param show true to show confirmation, false to delete immediately
+     */
+    public void setShowDeleteConfirmation(boolean show) {
+        this.showDeleteConfirmation = show;
     }
     
     @NonNull
@@ -56,6 +67,25 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     public void updateExpenses(List<Expense> newExpenses) {
         this.expenses = newExpenses;
         notifyDataSetChanged();
+    }
+    
+    /**
+     * Get the current list of expenses
+     * @return List of expenses
+     */
+    public List<Expense> getExpenses() {
+        return expenses;
+    }
+    
+    /**
+     * Remove an expense at a specific position (for swipe-to-delete animation)
+     * @param position Position to remove
+     */
+    public void removeAt(int position) {
+        if (position >= 0 && position < expenses.size()) {
+            expenses.remove(position);
+            notifyItemRemoved(position);
+        }
     }
     
     class ExpenseViewHolder extends RecyclerView.ViewHolder {
@@ -87,7 +117,9 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
                 if (listener != null) {
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        listener.onExpenseLongClick(expenses.get(position));
+                        Expense expense = expenses.get(position);
+                        // Show delete confirmation on long click
+                        showDeleteConfirmationDialog(expense);
                         return true;
                     }
                 }
@@ -104,15 +136,42 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
                 }
             });
             
-            // Delete button click listener
+            // Delete button click listener with confirmation
             btnDelete.setOnClickListener(v -> {
                 if (listener != null) {
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        listener.onDeleteClick(expenses.get(position));
+                        Expense expense = expenses.get(position);
+                        if (showDeleteConfirmation) {
+                            showDeleteConfirmationDialog(expense);
+                        } else {
+                            listener.onDeleteClick(expense);
+                        }
                     }
                 }
             });
+        }
+        
+        /**
+         * Show a confirmation dialog before deleting a transaction
+         */
+        private void showDeleteConfirmationDialog(Expense expense) {
+            new MaterialAlertDialogBuilder(context)
+                    .setTitle("Delete Transaction")
+                    .setMessage("Are you sure you want to delete this transaction?\n\n" +
+                            "📝 " + expense.getTitle() + "\n" +
+                            "💰 " + CurrencyFormatter.formatCurrency(expense.getAmount()) + "\n" +
+                            "📁 " + expense.getCategory())
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        if (listener != null) {
+                            listener.onDeleteClick(expense);
+                        }
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .show();
         }
         
         public void bind(Expense expense) {

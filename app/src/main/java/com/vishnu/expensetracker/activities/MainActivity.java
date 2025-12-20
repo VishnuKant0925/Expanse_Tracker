@@ -4,24 +4,32 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.vishnu.expensetracker.R;
 import com.vishnu.expensetracker.adapters.ExpenseAdapter;
 import com.vishnu.expensetracker.database.ExpenseDatabase;
 import com.vishnu.expensetracker.models.Expense;
 import com.vishnu.expensetracker.models.BalanceSummary;
+import com.vishnu.expensetracker.models.MonthlySummary;
 import com.vishnu.expensetracker.repository.BalanceRepository;
 import com.vishnu.expensetracker.utils.CurrencyFormatter;
+import com.vishnu.expensetracker.utils.MonthlyUtils;
+import com.vishnu.expensetracker.utils.SwipeToDeleteCallback;
 import com.vishnu.expensetracker.utils.ThemeManager;
-import android.widget.TextView;
-import android.widget.Toast;
+import com.vishnu.expensetracker.viewmodel.ExpenseViewModel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -38,10 +46,21 @@ public class MainActivity extends AppCompatActivity {
     private ExpenseDatabase database;
     private BalanceRepository balanceRepository;
     private ThemeManager themeManager;
+    private ExpenseViewModel expenseViewModel;
+    
+    // Monthly Overview Card Views
+    private View monthlyOverviewCard;
+    private TextView tvMonthName, tvDaysRemaining, tvMonthlyComparison;
+    private TextView tvMonthlyIncome, tvMonthlyExpenses, tvNetBalance;
+    private TextView tvBudgetPercentage, tvBudgetStatus, tvDailyLimit;
+    private ProgressBar progressBudget;
     
     // Variables to store current values for real-time calculation
     private double currentIncome = 0.0;
     private double currentExpenses = 0.0;
+    
+    // Snackbar for undo functionality
+    private Snackbar undoSnackbar;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,14 +85,33 @@ public class MainActivity extends AppCompatActivity {
         fabAddExpense = findViewById(R.id.fab_add_expense);
         bottomNavigation = findViewById(R.id.bottom_navigation);
         
+        // Initialize Monthly Overview Card views
+        monthlyOverviewCard = findViewById(R.id.monthly_overview_card);
+        tvMonthName = monthlyOverviewCard.findViewById(R.id.tv_month_name);
+        tvDaysRemaining = monthlyOverviewCard.findViewById(R.id.tv_days_remaining);
+        tvMonthlyComparison = monthlyOverviewCard.findViewById(R.id.tv_monthly_comparison);
+        tvMonthlyIncome = monthlyOverviewCard.findViewById(R.id.tv_monthly_income);
+        tvMonthlyExpenses = monthlyOverviewCard.findViewById(R.id.tv_monthly_expenses);
+        tvNetBalance = monthlyOverviewCard.findViewById(R.id.tv_net_balance);
+        tvBudgetPercentage = monthlyOverviewCard.findViewById(R.id.tv_budget_percentage);
+        tvBudgetStatus = monthlyOverviewCard.findViewById(R.id.tv_budget_status);
+        tvDailyLimit = monthlyOverviewCard.findViewById(R.id.tv_daily_limit);
+        progressBudget = monthlyOverviewCard.findViewById(R.id.progress_budget);
+        
         database = ExpenseDatabase.getInstance(this);
         balanceRepository = new BalanceRepository(database.expenseDao());
+        
+        // Initialize ViewModel
+        expenseViewModel = new ViewModelProvider(this).get(ExpenseViewModel.class);
     }
     
     private void setupRecyclerView() {
         adapter = new ExpenseAdapter(new ArrayList<>(), this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
+        
+        // Set up swipe-to-delete functionality
+        setupSwipeToDelete();
         
         // Set up expense item click listeners
         adapter.setOnExpenseClickListener(new ExpenseAdapter.OnExpenseClickListener() {
@@ -100,9 +138,30 @@ public class MainActivity extends AppCompatActivity {
             
             @Override
             public void onDeleteClick(Expense expense) {
-                showDeleteConfirmationDialog(expense);
+                deleteTransaction(expense);
             }
         });
+    }
+    
+    /**
+     * Set up swipe-to-delete gesture for RecyclerView items
+     * Swipe left or right to delete a transaction
+     */
+    private void setupSwipeToDelete() {
+        SwipeToDeleteCallback swipeCallback = new SwipeToDeleteCallback(this) {
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && adapter.getExpenses() != null 
+                        && position < adapter.getExpenses().size()) {
+                    Expense expense = adapter.getExpenses().get(position);
+                    deleteTransaction(expense);
+                }
+            }
+        };
+        
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipeCallback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
     
     private void setupClickListeners() {
@@ -152,6 +211,125 @@ public class MainActivity extends AppCompatActivity {
             currentExpenses = expenses != null ? expenses : 0.0;
             tvTotalExpense.setText(CurrencyFormatter.formatCurrency(currentExpenses));
         });
+        
+        // Observe monthly summary for Monthly Overview Card
+        balanceRepository.getMonthlySummary().observe(this, this::updateMonthlyOverview);
+        
+        // Observe undo snackbar trigger from ViewModel
+        expenseViewModel.getShowUndoSnackbar().observe(this, showUndo -> {
+            if (showUndo != null && showUndo) {
+                showUndoSnackbar();
+            }
+        });
+        
+        // Observe delete messages
+        expenseViewModel.getDeleteMessage().observe(this, message -> {
+            if (message != null && !message.isEmpty()) {
+                // Message is shown via snackbar, no need for toast
+            }
+        });
+        
+        // Observe error messages
+        expenseViewModel.getErrorMessage().observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+            }
+        });
+        
+        // Initial load of monthly data
+        balanceRepository.refreshMonthlyData();
+    }
+    
+    /**
+     * Update the Monthly Overview Card with summary data
+     */
+    private void updateMonthlyOverview(MonthlySummary summary) {
+        if (summary == null) return;
+        
+        // Month name and days remaining
+        tvMonthName.setText(summary.getMonthName());
+        int daysRemaining = MonthlyUtils.getDaysRemainingInMonth();
+        tvDaysRemaining.setText(daysRemaining + " days left");
+        
+        // Monthly comparison message
+        tvMonthlyComparison.setText(summary.getComparisonMessage());
+        
+        // Income and expenses
+        tvMonthlyIncome.setText(CurrencyFormatter.formatCurrency(summary.getTotalIncome()));
+        tvMonthlyExpenses.setText(CurrencyFormatter.formatCurrency(summary.getTotalExpenses()));
+        
+        // Net balance with color
+        double netBalance = summary.getNetBalance();
+        tvNetBalance.setText(CurrencyFormatter.formatCurrency(Math.abs(netBalance)));
+        if (netBalance >= 0) {
+            tvNetBalance.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            tvNetBalance.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        }
+        
+        // Budget progress
+        int budgetPercent = summary.getBudgetUsagePercent();
+        progressBudget.setProgress(Math.min(budgetPercent, 100));
+        tvBudgetPercentage.setText(budgetPercent + "%");
+        
+        // Budget status message and color
+        tvBudgetStatus.setText(summary.getBudgetStatusMessage());
+        updateBudgetProgressColor(budgetPercent);
+        
+        // Daily spending limit
+        double dailyLimit = summary.getDailySpendingLimit();
+        if (dailyLimit > 0 && daysRemaining > 0) {
+            tvDailyLimit.setText("💡 Daily spending limit: " + 
+                    CurrencyFormatter.formatCurrency(dailyLimit) + " to stay on budget");
+            tvDailyLimit.setVisibility(View.VISIBLE);
+        } else if (summary.getBudgetRemaining() < 0) {
+            tvDailyLimit.setText("❌ You've exceeded your budget!");
+            tvDailyLimit.setVisibility(View.VISIBLE);
+        } else {
+            tvDailyLimit.setVisibility(View.GONE);
+        }
+    }
+    
+    /**
+     * Update budget progress bar color based on usage percentage
+     */
+    private void updateBudgetProgressColor(int percent) {
+        int colorRes;
+        if (percent < 50) {
+            colorRes = R.color.budget_safe;
+        } else if (percent < 75) {
+            colorRes = R.color.budget_warning;
+        } else if (percent < 100) {
+            colorRes = R.color.budget_danger;
+        } else {
+            colorRes = R.color.budget_over;
+        }
+        progressBudget.setProgressTintList(
+                android.content.res.ColorStateList.valueOf(getResources().getColor(colorRes)));
+    }
+    
+    /**
+     * Show snackbar with undo option after deletion
+     */
+    private void showUndoSnackbar() {
+        undoSnackbar = Snackbar.make(
+                findViewById(android.R.id.content),
+                "Transaction deleted",
+                Snackbar.LENGTH_LONG
+        );
+        undoSnackbar.setAction("UNDO", v -> {
+            expenseViewModel.undoDelete();
+        });
+        undoSnackbar.addCallback(new Snackbar.Callback() {
+            @Override
+            public void onDismissed(Snackbar transientBottomBar, int event) {
+                if (event != DISMISS_EVENT_ACTION) {
+                    // User didn't click undo, clear the undo state
+                    expenseViewModel.clearUndoState();
+                }
+            }
+        });
+        undoSnackbar.show();
     }
     
     private void updateBalanceDisplay(BalanceSummary balanceSummary) {
@@ -225,18 +403,22 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         // Refresh data when returning to this activity
         loadData();
+        // Also refresh monthly data
+        balanceRepository.refreshMonthlyData();
     }
     
     /**
      * Show confirmation dialog before deleting a transaction
+     * Note: This is now handled in the adapter with MaterialAlertDialogBuilder
+     * This method is kept for backward compatibility
      */
     private void showDeleteConfirmationDialog(Expense expense) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Transaction")
                 .setMessage("Are you sure you want to delete this transaction?\n\n" +
-                        "Title: " + expense.getTitle() + "\n" +
-                        "Amount: " + CurrencyFormatter.formatCurrency(expense.getAmount()) + "\n" +
-                        "Category: " + expense.getCategory())
+                        "📝 " + expense.getTitle() + "\n" +
+                        "💰 " + CurrencyFormatter.formatCurrency(expense.getAmount()) + "\n" +
+                        "📁 " + expense.getCategory())
                 .setPositiveButton("Delete", (dialog, which) -> {
                     deleteTransaction(expense);
                 })
@@ -248,32 +430,14 @@ public class MainActivity extends AppCompatActivity {
     }
     
     /**
-     * Delete transaction from database
+     * Delete transaction using soft delete (can be undone)
+     * Uses ViewModel for proper lifecycle management and undo functionality
      */
     private void deleteTransaction(Expense expense) {
-        // Show a progress toast
-        Toast.makeText(this, "Deleting transaction...", Toast.LENGTH_SHORT).show();
+        // Use ViewModel's soft delete with undo capability
+        expenseViewModel.softDeleteTransaction(expense);
         
-        // Execute delete operation in background thread
-        Executors.newSingleThreadExecutor().execute(() -> {
-            try {
-                database.expenseDao().delete(expense);
-                
-                // Show success message on UI thread
-                runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, 
-                            "Transaction deleted successfully", 
-                            Toast.LENGTH_SHORT).show();
-                    // Data will refresh automatically through LiveData observers
-                });
-            } catch (Exception e) {
-                // Show error message on UI thread
-                runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, 
-                            "Error deleting transaction: " + e.getMessage(), 
-                            Toast.LENGTH_LONG).show();
-                });
-            }
-        });
+        // Refresh monthly data after deletion
+        balanceRepository.refreshMonthlyData();
     }
 }
