@@ -44,11 +44,15 @@ public class Expense {
     
     @ColumnInfo(name = "deleted_at")
     private Date deletedAt;
+    
+    @ColumnInfo(name = "is_essential", defaultValue = "1")
+    private boolean isEssential; // true = Need (essential), false = Want (non-essential)
 
     // Constructors
     public Expense() {
         this.createdAt = new Date();
         this.isDeleted = false;
+        this.isEssential = true; // Default to essential
     }
 
     @Ignore
@@ -113,6 +117,9 @@ public class Expense {
     
     public Date getDeletedAt() { return deletedAt; }
     public void setDeletedAt(Date deletedAt) { this.deletedAt = deletedAt; }
+    
+    public boolean isEssential() { return isEssential; }
+    public void setEssential(boolean essential) { this.isEssential = essential; }
     
     /**
      * Soft delete this expense (marks as deleted without removing from DB)

@@ -70,6 +70,18 @@ public interface ExpenseDao {
     @Query("SELECT (SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE type = 'income' AND is_deleted = 0) - (SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE type = 'expense' AND is_deleted = 0) as balance")
     LiveData<Double> getCurrentBalance();
     
+    /**
+     * DEBUG: Get total count of all non-deleted transactions
+     */
+    @Query("SELECT COUNT(*) FROM expenses WHERE is_deleted = 0")
+    int getActiveTransactionCount();
+    
+    /**
+     * DEBUG: Get all expenses synchronously
+     */
+    @Query("SELECT * FROM expenses WHERE is_deleted = 0 ORDER BY date DESC LIMIT 10")
+    List<Expense> getAllExpensesSync();
+    
     // ========== MONTHLY TRACKING QUERIES ==========
     
     /**
@@ -139,6 +151,99 @@ public interface ExpenseDao {
     @Query("DELETE FROM expenses")
     void deleteAllExpenses();
     
+    // ========== ANALYTICS QUERIES ==========
+    
+    /**
+     * Get daily expense totals for a date range (for Line Chart - spending trend)
+     * Returns day number and total amount for each day
+     */
+    @Query("SELECT strftime('%d', date/1000, 'unixepoch') as day, " +
+           "strftime('%Y-%m-%d', date/1000, 'unixepoch') as dateStr, " +
+           "COALESCE(SUM(amount), 0) as total " +
+           "FROM expenses " +
+           "WHERE type = 'expense' AND is_deleted = 0 AND date >= :startDate AND date <= :endDate " +
+           "GROUP BY strftime('%Y-%m-%d', date/1000, 'unixepoch') " +
+           "ORDER BY dateStr ASC")
+    List<DailyExpenseSum> getDailyExpenseTotals(long startDate, long endDate);
+    
+    /**
+     * Get weekly expense totals for the last 4 weeks (for Bar Chart comparison)
+     */
+    @Query("SELECT strftime('%W', date/1000, 'unixepoch') as weekNumber, " +
+           "strftime('%Y-%W', date/1000, 'unixepoch') as yearWeek, " +
+           "COALESCE(SUM(amount), 0) as total " +
+           "FROM expenses " +
+           "WHERE type = 'expense' AND is_deleted = 0 AND date >= :startDate AND date <= :endDate " +
+           "GROUP BY strftime('%Y-%W', date/1000, 'unixepoch') " +
+           "ORDER BY yearWeek ASC")
+    List<WeeklyExpenseSum> getWeeklyExpenseTotals(long startDate, long endDate);
+    
+    /**
+     * Get Needs vs Wants totals for a date range (for Pie Chart)
+     * Needs = is_essential = 1, Wants = is_essential = 0
+     */
+    @Query("SELECT is_essential as isEssential, " +
+           "COALESCE(SUM(amount), 0) as total " +
+           "FROM expenses " +
+           "WHERE type = 'expense' AND is_deleted = 0 AND date >= :startDate AND date <= :endDate " +
+           "GROUP BY is_essential")
+    List<NeedsWantsSum> getNeedsVsWantsTotals(long startDate, long endDate);
+    
+    /**
+     * Get total amount for a date range (synchronous, for analytics calculations)
+     */
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses " +
+           "WHERE type = :type AND is_deleted = 0 AND date >= :startDate AND date <= :endDate")
+    double getTotalByTypeAndDateRange(String type, long startDate, long endDate);
+    
+    /**
+     * Get average daily expense for a date range
+     */
+    @Query("SELECT AVG(daily_total) FROM (" +
+           "SELECT COALESCE(SUM(amount), 0) as daily_total " +
+           "FROM expenses " +
+           "WHERE type = 'expense' AND is_deleted = 0 AND date >= :startDate AND date <= :endDate " +
+           "GROUP BY strftime('%Y-%m-%d', date/1000, 'unixepoch'))")
+    double getAverageDailyExpense(long startDate, long endDate);
+    
+    /**
+     * Get top spending categories for a date range with limit
+     */
+    @Query("SELECT category, COALESCE(SUM(amount), 0) as total " +
+           "FROM expenses " +
+           "WHERE type = 'expense' AND is_deleted = 0 AND date >= :startDate AND date <= :endDate " +
+           "GROUP BY category " +
+           "ORDER BY total DESC " +
+           "LIMIT :limit")
+    List<CategoryExpenseSum> getTopSpendingCategories(long startDate, long endDate, int limit);
+    
+    /**
+     * Get highest single expense in a date range
+     */
+    @Query("SELECT * FROM expenses " +
+           "WHERE type = 'expense' AND is_deleted = 0 AND date >= :startDate AND date <= :endDate " +
+           "ORDER BY amount DESC LIMIT 1")
+    Expense getHighestExpense(long startDate, long endDate);
+    
+    /**
+     * Get transaction count by type for a date range
+     */
+    @Query("SELECT COUNT(*) FROM expenses " +
+           "WHERE type = :type AND is_deleted = 0 AND date >= :startDate AND date <= :endDate")
+    int getTransactionCount(String type, long startDate, long endDate);
+    
+    /**
+     * Get daily income totals for a date range (for Line Chart - income trend)
+     */
+    @Query("SELECT strftime('%d', date/1000, 'unixepoch') as day, " +
+           "strftime('%Y-%m-%d', date/1000, 'unixepoch') as dateStr, " +
+           "COALESCE(SUM(amount), 0) as total " +
+           "FROM expenses " +
+           "WHERE type = 'income' AND is_deleted = 0 AND date >= :startDate AND date <= :endDate " +
+           "GROUP BY strftime('%Y-%m-%d', date/1000, 'unixepoch') " +
+           "ORDER BY dateStr ASC")
+    List<DailyExpenseSum> getDailyIncomeTotals(long startDate, long endDate);
+    
     // ========== HELPER CLASSES ==========
     
     public class CategoryExpenseSum {
@@ -153,6 +258,23 @@ public interface ExpenseDao {
     
     public class MonthlyExpenseSum {
         public String month;
+        public double total;
+    }
+    
+    public class DailyExpenseSum {
+        public String day;
+        public String dateStr;
+        public double total;
+    }
+    
+    public class WeeklyExpenseSum {
+        public String weekNumber;
+        public String yearWeek;
+        public double total;
+    }
+    
+    public class NeedsWantsSum {
+        public boolean isEssential;
         public double total;
     }
 }

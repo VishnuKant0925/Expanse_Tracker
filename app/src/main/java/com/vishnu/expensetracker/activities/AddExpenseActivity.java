@@ -13,6 +13,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.vishnu.expensetracker.R;
 import com.vishnu.expensetracker.database.ExpenseDatabase;
 import com.vishnu.expensetracker.models.Expense;
@@ -34,6 +36,8 @@ public class AddExpenseActivity extends AppCompatActivity {
     private RadioGroup rgType;
     private RadioButton rbExpense, rbIncome;
     private Button btnSave, btnCancel;
+    private MaterialCardView cardEssential;
+    private SwitchMaterial switchEssential;
     
     private ExpenseDatabase database;
     private ExecutorService executor;
@@ -79,6 +83,8 @@ public class AddExpenseActivity extends AppCompatActivity {
         rbIncome = findViewById(R.id.rb_income);
         btnSave = findViewById(R.id.btn_save);
         btnCancel = findViewById(R.id.btn_cancel);
+        cardEssential = findViewById(R.id.card_essential);
+        switchEssential = findViewById(R.id.switch_essential);
     }
     
     private void setupSpinners() {
@@ -98,6 +104,17 @@ public class AddExpenseActivity extends AppCompatActivity {
         btnSave.setOnClickListener(v -> saveExpense());
         
         btnCancel.setOnClickListener(v -> finish());
+        
+        // Show/hide essential toggle based on type selection
+        rgType.setOnCheckedChangeListener((group, checkedId) -> {
+            // Show essential toggle only for expenses
+            cardEssential.setVisibility(checkedId == R.id.rb_expense ? View.VISIBLE : View.GONE);
+            // Reset category selection when type changes
+            selectedCategory = "";
+            selectedSubcategory = "";
+            tvSelectedCategory.setText("Select Category");
+            tvSelectedSubcategory.setVisibility(View.GONE);
+        });
     }
     
     private void showDatePicker() {
@@ -177,6 +194,11 @@ public class AddExpenseActivity extends AppCompatActivity {
         // Create expense object with subcategory
         Expense expense = new Expense(title, amount, selectedCategory, selectedSubcategory, 
                                     description, selectedDate.getTime(), type, paymentMethod);
+        
+        // Set essential flag (only relevant for expenses)
+        if (type.equals("expense")) {
+            expense.setEssential(switchEssential.isChecked());
+        }
         
         // Save to database
         executor.execute(() -> {

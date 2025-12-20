@@ -14,7 +14,7 @@ import com.vishnu.expensetracker.utils.DateConverter;
 
 @Database(
     entities = {Expense.class, Category.class, Subcategory.class},
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters({DateConverter.class})
@@ -40,6 +40,18 @@ public abstract class ExpenseDatabase extends RoomDatabase {
         }
     };
     
+    /**
+     * Migration from version 3 to 4:
+     * Adds is_essential column for Needs vs Wants analytics
+     */
+    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            // Add is_essential column with default value 1 (true = essential/need)
+            database.execSQL("ALTER TABLE expenses ADD COLUMN is_essential INTEGER NOT NULL DEFAULT 1");
+        }
+    };
+    
     public static synchronized ExpenseDatabase getInstance(Context context) {
         if (instance == null) {
             instance = Room.databaseBuilder(
@@ -47,7 +59,7 @@ public abstract class ExpenseDatabase extends RoomDatabase {
                 ExpenseDatabase.class,
                 "expense_database"
             )
-            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
             .fallbackToDestructiveMigration()
             .build();
         }
